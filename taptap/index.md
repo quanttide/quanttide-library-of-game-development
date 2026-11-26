@@ -28,6 +28,14 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 
 来源：[创建小游戏](https://developer.taptap.cn/minigameapidoc/quick-start/guide/creation-improvement/)、[版本提审](https://developer.taptap.cn/minigameapidoc/quick-start/guide/game-publish/version/)
 
+## 开发者入驻
+
+- 注册开发者：无需审核，但最多建 2 个「未发布」游戏且不能提审——要上线必须转认证开发者
+- 认证开发者：个人（厂商名称 + 身份证）或企业（营业执照 + 认证公函），提交后官方审核 2 个工作日
+- 认证公函用 TapTap 官方模板（本目录那份）：加盖真实公章（**不支持电子公章**）、运营人签字与日期缺一不可、日期填当天；**有效期一年，每年更新**
+
+来源：[开发者注册与登录](https://developer.taptap.cn/minigameapidoc/quick-start/guide/registration-login/)
+
 ## 资质：无内购无版号，前置备案是关键路径
 
 - 不涉及内购无需版号；[小游戏审核规范](https://developer.taptap.cn/minigameapidoc/tap-operation/operation-standards/review-standards/) 1.1.1 原文「无版号游戏不得包含内购计费内容」
@@ -88,6 +96,7 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 ## 出处
 
 - 小游戏文档指引 <https://developer.taptap.cn/minigameapidoc/quick-start/document-guide/>
+- 开发者注册与登录 <https://developer.taptap.cn/minigameapidoc/quick-start/guide/registration-login/>
 - 小游戏介绍 <https://developer.taptap.cn/minigameapidoc/quick-start/guide/minigames-intro/>
 - 创建小游戏 <https://developer.taptap.cn/minigameapidoc/quick-start/guide/creation-improvement/>
 - 小游戏前置备案 <https://developer.taptap.cn/minigameapidoc/quick-start/guide/pre-filing/>
