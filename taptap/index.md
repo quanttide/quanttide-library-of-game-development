@@ -4,18 +4,29 @@ H5 游戏上架 TapTap 的通道、流程、资质、物料、包体与工具。
 
 ## 通道：H5 小游戏
 
-TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.cn/minigameapidoc/quick-start/guide/minigames-intro/)）：
+TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.cn/minigameapidoc/quick-start/guide/minigames-intro/)）：普通小游戏与 H5 小游戏。两者功能、曝光无差别，差别在运行环境与交付形态——选哪条看游戏本身是不是网页。
 
-| 包体 | 形态 | 判定 |
-|------|------|------|
-| 普通小游戏 | `game.js` + `game.json` + `project.config.json` 三件套，运行时是没有 DOM 的 JS VM | 游戏是 DOM 渲染，走不通 |
-| H5 小游戏 | 上传根目录含 `index.html` 的目录，平台负责打包 | **走这条**：`npm run build` 的 `dist/` 正是这个形态 |
+### 运行环境
+
+- **普通小游戏**：[开发教程总览](https://developer.taptap.cn/minigameapidoc/dev/tutorial/overview/) 原文——「小游戏的运行环境是一个绑定了一些方法的 JavaScript VM。不同于浏览器，这个运行环境没有 BOM 和 DOM API，只有 tap 系列 API」；同页「没有 BOM API，因此也就没有 window 对象」，从 H5 迁入要自己实现 window 兼容，Cocos/Laya/Egret/Unity 须靠 Adapter 在引擎层抹平 BOM/DOM。项目结构 `game.js`（入口）+ `game.json`（配置：横竖屏、分包），画图 `tap.createCanvas()`、触摸 `tap.onTouchStart()`。
+- **H5 小游戏**：普通网页，跑在 WebView 里，`window`、`document`、localStorage、`<audio>` 齐全。
+
+### 交付两步
+
+- **普通小游戏**：① 按三件套写游戏，首包 ≤60MB；② 用 TapTap 打包工具打成指定 zip 上传，且包体要求已接入 TapTap 登录。
+- **H5 小游戏**：① `npm run build` 出 `dist/`（根目录 `index.html`）；② 传这个目录，平台自己打包——MCP `prepare_h5_upload` 校验根有 `index.html`，`upload_h5_game` 用 zlib level 9 压缩后上传，`gamePath` 必须是相对路径（如 `dist`）。
+
+### 对 qtgame-tycoon 的走查
+
+游戏是 `innerHTML` 渲染 DOM（14 处）、localStorage 存档、`new Audio` 播 BGM：放进普通小游戏，开局渲染就崩（那个环境没有 `document`），要上就得把 640 行 CSS（19 个 keyframes、20 处绝对定位）搬进 canvas + `tap.*`，等于重写；放进 H5，`dist/` 原样上传，一行不改。
+
+### 其余差别
+
+- **工具与广告**：[MCP 安装指南](https://developer.taptap.cn/minigameapidoc/quick-start/mcp-guide/mcp-setup/) 明示「当前 MCP 仅支持 H5 小游戏」；[广告接入指南](https://developer.taptap.cn/minigameapidoc/quick-start/mcp-guide/ad-integration-guide/) 明示广告变现仅支持星火、H5 小游戏和 TapTap 制造的游戏——H5 走开发者中心「小游戏广告」（开通 5 分钟、AI 写代码），普通小游戏走 Dirichlet 广告联盟，两边都是 [0 分成、开发者拿 100%](https://developer.taptap.cn/minigameapidoc/quick-start/monetization/IAA-game/)（原文「0 分成，开发者可得到 100% 的现金分成比例」），个人开发者可接
+- **曝光**：文档未按包体区分流量资源，即点即玩专区、首页推荐两者同享
+- **TapTap 登录**：硬要求只写在普通小游戏的包体格式里，H5 侧无明文，提审时留意
 
 商店 APK 是另一条路（[docs/store](https://developer.taptap.cn/docs/store/)）：必须支持 ARM64，包名唯一且被移动应用备案校验，本游戏不走。
-
-两条硬约束都指向 H5：[MCP 安装指南](https://developer.taptap.cn/minigameapidoc/quick-start/mcp-guide/mcp-setup/) 明示「当前 MCP 仅支持 H5 小游戏」；[广告接入指南](https://developer.taptap.cn/minigameapidoc/quick-start/mcp-guide/ad-integration-guide/) 明示广告变现仅支持星火、H5 小游戏和 TapTap 制造的游戏。
-
-变现零分成：[IAA 游戏](https://developer.taptap.cn/minigameapidoc/quick-start/monetization/IAA-game/) 原文「0 分成，开发者可得到 100% 的现金分成比例」，个人开发者可接。
 
 ## 上架流程
 
@@ -77,12 +88,6 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 
 审核雷区（小游戏审核规范 3.2 / 3.3 / 3.4）：截图不得出现手机 UI、水印、虚假下载按钮；宣传图不得多图拼接、不得出现游戏 ICON；标题不得含「极速版」「送百抽」类词与「最好玩」等广告法禁词。
 
-## 包体
-
-- H5：`prepare_h5_upload` 校验目录根有 `index.html`，`upload_h5_game` 用 zlib level 9 压缩后上传，`gamePath` 必须是相对路径（如 `dist`）
-- 普通小游戏：首包 ≤60MB，且须正确接入 TapTap 登录
-- 我们的包：`npm run build` 产出 `dist/`（`index.html` + `assets/`），与 H5 要求同形，无需改造
-
 ## 工具：TapTap MCP
 
 `@taptap/instant-games-open-mcp`，v1.24.14，npm 最后更新 2026-09-09；以下均核对包源码：
@@ -96,6 +101,7 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 ## 出处
 
 - 小游戏文档指引 <https://developer.taptap.cn/minigameapidoc/quick-start/document-guide/>
+- 开发教程总览（运行环境与 Tap API）<https://developer.taptap.cn/minigameapidoc/dev/tutorial/overview/>
 - 开发者注册与登录 <https://developer.taptap.cn/minigameapidoc/quick-start/guide/registration-login/>
 - 小游戏介绍 <https://developer.taptap.cn/minigameapidoc/quick-start/guide/minigames-intro/>
 - 创建小游戏 <https://developer.taptap.cn/minigameapidoc/quick-start/guide/creation-improvement/>
