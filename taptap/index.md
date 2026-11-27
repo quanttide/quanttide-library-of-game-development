@@ -1,6 +1,6 @@
 # TapTap 上架参考
 
-H5 游戏上架 TapTap 的通道、流程、资质、物料、包体与工具。全部条目查证自 TapTap 官方文档、npm 包源码与 CLI 实测，查证日期 2026-11-26（2026-11-27 增补官方 CLI 发布通道、备案时点与预检实况），出处见文末。
+H5 游戏上架 TapTap 的通道、流程、资质、物料、包体与工具。全部条目查证自 TapTap 官方文档、npm 包源码与 CLI 实测，查证日期 2026-11-26（2026-11-27 增补官方 CLI 发布通道、备案时点、预检实况、隐私办理路径与动态必填），出处见文末。
 
 ## 通道：H5 小游戏
 
@@ -32,10 +32,10 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 
 1. 注册并认证 TapTap 开发者 → 开发者中心「创建游戏」，游玩提供方式选「小游戏」
 2. 商店资料完善信息并提交审核（首审官方预计 1–3 日，更新版本预计 1 日内）
-3. 包体：商店 → 小游戏管理 → 包体管理 → 上传包体；版本号 `V x.y.z`，三段整数、逐版递增，不得与已上线或审核中的版本重复
+3. 包体：商店 → 小游戏管理 → 包体管理 → 上传包体；版本号[文档](https://developer.taptap.cn/minigameapidoc/quick-start/guide/game-publish/version/)写 `V x.y.z` 三段整数、逐版递增，实测 H5 版本是平台生成的 `V-YYYYMMDD`（如 V-20261127），CLI 提审不传版本号；两口径都要求不与已上线或审核中的版本重复
 4. 资质：商店 → 小游戏管理 → 小游戏资质（前置备案见下）；仅小游戏方式时防沉迷由平台默认托管
 5. 提审：开发版本 →「提审」→ 商店资料补全 → 选「正式上线」→ 提交审核
-6. 发布状态三选：敬请期待 / 预约 / 正式上线（试玩版）；正式上线要求包体与资质都通过
+6. 发布状态三选：敬请期待 / 预约 / 正式上线（试玩版）；正式上线要求包体与资质都通过。落在字段上是 `region_flag_android/ios`，H5 可选 android `[1,3,4]`、iOS `[1,3,0]`，「提供游玩」= android 4 / iOS 0；**置为提供游玩会触发动态必填（见下「物料」）**
 
 来源：[创建小游戏](https://developer.taptap.cn/minigameapidoc/quick-start/guide/creation-improvement/)、[版本提审](https://developer.taptap.cn/minigameapidoc/quick-start/guide/game-publish/version/)
 
@@ -56,6 +56,8 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 - 核准资料含：开发者认证、小游戏包体、软件著作权人、游戏内容介绍说明、负责人基本情况、身份信息核验、补充材料
 - 时长：全程预计 **20 个工作日**；初审 **12–16 个工作日**；初审过后工信部向负责人发短信，**24 小时内**不完成核验即退回重报
 - 主体：个人认证时负责人必须是认证主体本人；企业认证可授权第三人
+- 隐私合规属独立材料域（小游戏域），应用资质接口不支持直写：声明在开发者中心网页「小游戏隐私合规」面板保存——平台统一托管，一道判断题「是否收集用户隐私」，游戏不采集任何数据就选「否」；CLI 无保存命令，保存后 `qualification prepare-mini-app-privacy`（version_id 用 H5 包的 package_id）出扫描报告 → `submit-mini-app-privacy` 提交独立审核
+- 适龄（8/12/16）与 AI 声明同样是独立审核：save → submit → `approved` 才生效，提交是 high-risk-write、须用户确认
 - 企业主体认证需提交加盖公章的《TapTap 认证申请公函》，模板存本目录 `TapTap认证申请公函（模板）-20240313.docx`
 
 来源：[小游戏前置备案](https://developer.taptap.cn/minigameapidoc/quick-start/guide/pre-filing/)
@@ -76,6 +78,8 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 | 首页推荐素材 | 勾选 | — |
 
 图片统一要求：带游戏名称或 LOGO，且不得出现名称、LOGO 以外的文字。
+
+动态必填（2026-11-27 实测，字段随状态就地变必填）：分发状态置「提供游玩」→ 实机录屏 `gameplay_demo_video` 必填；上传竖版录屏 → 1:1 宣传图 `square_promo_image` 必填。`app precheck-review` 会把它们列成 MISSING_REQUIRED，按序补即可。
 
 ### 游戏物料要求（v4）要点
 
@@ -100,6 +104,7 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 - 资料写入 read-before-write：`app get-module` 取 `current_value` 当 `expected`，`app save-changes` 先 `--dry-run` 再 `--yes`；图片值必须 `{url, info}` 且 info 五项（size/format/width/height/image_ave.rgb）齐全，缺一项 400；首页推荐语 ≤25 字
 - 资质命令族：`qualification save-qualification-draft`（类型声明、app_features 事实、AI 声明最小输入 `provide_aigc_service=false`+`package_types`）、`save-age-grade`/`submit-age-grade`（8/12/16，提交是 high-risk-write，须用户确认）、H5 备案 `save-h5-game-filing`/`submit-h5-game-filing`、小游戏隐私 `prepare-mini-app-privacy`/`submit-mini-app-privacy`
 - 提审：`app precheck-review`（预检）→ `app submit-review`；预检返回的 blockers/warnings 就是真实卡点，别拿文档猜
+- 自测二维码（提审包与自测包分开）：`taptap-cli test-qr-code --app-id <id> --dev-id <id> --data '{"package_id":<包id>}' --output <png>`
 
 **MCP `@taptap/instant-games-open-mcp`（v1.24.15，上传/发布已废弃）**：认证（OAuth 2.0 设备码流，扫码落 token）、素材与资料（`upload_image`、`update_app_info`）、查状态（`get_app_status`：0 未发布 / 1 审核中 / 2 审核失败 / 3 已上线）、`create_app`/`list_developers_and_apps`/`select_app`、排行榜/云存档/分享/联机/广告接入仍可用；**`prepare_h5_upload`→`upload_h5_game` 已废弃，见上「交付两步」**。
 
