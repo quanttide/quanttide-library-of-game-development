@@ -1,6 +1,6 @@
 # TapTap 上架参考
 
-H5 游戏上架 TapTap 的通道、流程、资质、物料、包体与工具。全部条目查证自 TapTap 官方文档、npm 包源码与 CLI 实测，查证日期 2026-11-26（2026-11-27 增补官方 CLI 发布通道、备案时点、预检实况、隐私办理路径与动态必填），出处见文末。
+H5 游戏上架 TapTap 的通道、流程、资质、物料、包体与工具。全部条目查证自 TapTap 官方文档、npm 包源码与 CLI 实测，查证日期 2026-11-26（2026-11-27 增补官方 CLI 发布通道、备案时点、预检实况、隐私办理路径、动态必填与广告接入），出处见文末。
 
 ## 通道：H5 小游戏
 
@@ -94,6 +94,40 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 
 审核雷区（小游戏审核规范 3.2 / 3.3 / 3.4）：截图不得出现手机 UI、水印、虚假下载按钮；宣传图不得多图拼接、不得出现游戏 ICON；标题不得含「极速版」「送百抽」类词与「最好玩」等广告法禁词。
 
+## 广告变现：接入激励视频（H5）
+
+### 适用与开通
+
+- 广告变现只支持**星火、H5 小游戏、TapTap 制造**（[广告接入指南](https://developer.taptap.cn/minigameapidoc/quick-start/mcp-guide/ad-integration-guide/) 原文）；Tap 小游戏与 APK 走 Dirichlet 广告联盟。两边都是 0 分成、开发者拿 100%，个人开发者可接
+- 开通（约 5 分钟，开发者中心）：先完善财务主体信息（收款账户、开户行、银行账号）→ 游戏 → 商店 → 小游戏广告 → 「申请开通」，需确认认证信息与收款信息
+- 三种广告：激励视频（收入最高，玩家主动看换奖励，新手先接这个）、插屏（间隙自动弹，中等）、Banner（横幅，较低）
+
+### 接入流程（[广告总览](https://developer.taptap.cn/minigameapidoc/dev/tutorial/open-capabilities/ad/ad/)）
+
+1. 广告平台创建广告位，拿 `adUnitId`；先配测试工具验证展示
+2. 游戏里调广告 API（见下）；正式广告位要**提交审核**，通过后才正常展示
+
+### 激励视频 API（[激励视频广告](https://developer.taptap.cn/minigameapidoc/dev/tutorial/open-capabilities/ad/rewarded-video-ad/) 原文核对）
+
+- `tap.createRewardedVideoAd({ adUnitId })` 创建，**单例**：重复调用返回同一实例；组件默认隐藏，`.show()` 显示，开发者不能主动隐藏或关闭（用户关或播完才关）
+- `onLoad(cb)` / `onError(err)` 监听拉取成败；`.show()` 返回 Promise，素材没加载完会 rejected——先判断加载态，失败就 `.load().then(show)`，再兜底 `tap.showToast('暂无广告')`
+- 发奖只认 `onClose(res)` 的 **`res.isEnded === true`**；看完/关闭后素材清空、自动加载下一份
+
+```js
+const ad = tap.createRewardedVideoAd({ adUnitId: 'your-ad-unit-id' });
+ad.onClose(res => { if (res && res.isEnded) giveReward(); else tap.showToast({ title: '观看完整视频才能获得奖励哦', icon: 'none' }); });
+function showAd() { ad.show().catch(() => ad.load().then(() => ad.show()).catch(() => tap.showToast({ title: '暂无广告，请稍后再试', icon: 'none' }))); }
+```
+
+### 接入纪律与故障
+
+- 激励视频必须玩家**自己点**，不能自动弹；插屏间隔 ≥2–3 分钟；广告加载失败就跳过，别卡游戏
+- 「广告不显示」四查：adUnitId 错、无填充（配测试工具）、高频请求限流、网络/广告位状态
+
+### 结算
+
+每月 **28 号**更新上月广告收益；最低提现 **100 元**，提现后约 **7 个工作日**到账；个税预扣预缴、以年度汇算为准；开发者中心 → 游戏 → 小游戏广告 查看与提现
+
 ## 工具：发布走官方 CLI，MCP 只剩查询
 
 **官方 CLI（2026-11-27 实测，版本 2026.11.26）**：`npm i -g @taptap/cli`，命令 `taptap-cli`。要点：
@@ -123,6 +157,8 @@ TapTap 小游戏支持两种包体（[小游戏介绍](https://developer.taptap.
 - 广告接入指南 <https://developer.taptap.cn/minigameapidoc/quick-start/mcp-guide/ad-integration-guide/>
 - IAA 游戏 <https://developer.taptap.cn/minigameapidoc/quick-start/monetization/IAA-game/>
 - 游戏物料要求（v4）<https://developer.taptap.cn/docs/store/release/publish/material/>
+- 广告总览（开放能力）<https://developer.taptap.cn/minigameapidoc/dev/tutorial/open-capabilities/ad/ad/>
+- 激励视频广告 <https://developer.taptap.cn/minigameapidoc/dev/tutorial/open-capabilities/ad/rewarded-video-ad/>
 - npm 包 `@taptap/instant-games-open-mcp` <https://www.npmjs.com/package/@taptap/instant-games-open-mcp>
 - TapTap CLI 文档 <https://developer.taptap.cn/v3/cli/>
 - npm 包 `@taptap/cli` <https://www.npmjs.com/package/@taptap/cli>
